@@ -21,3 +21,8 @@ Usage
     $ sconv +++/+ * out.png
     
 Now `a`, `b`, and `c` are in the top row and `d` in the bottom row.
+
+    $ rm out.png
+    $ sconv +/+/+/+ * out.png
+
+...
