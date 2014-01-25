@@ -1,0 +1,41 @@
+#!/bin/ruby
+require 'tmpdir'
+
+if ARGV.length < 3 
+    puts "USAGE: sconv pattern input [input...] out"
+    puts "example pattern: ++/++++/+"
+    exit
+end
+
+pattern = ARGV[0]
+if /[^+\/]/ =~ pattern
+    puts "pattern may only contain + and /"
+    exit
+end
+if pattern.start_with?("/") || pattern.end_with?("/")
+    puts "pattern mustn't start or end with /"
+    exit
+end
+if /\/\// =~ pattern
+    puts "pattern mustn't contain two consecutive /"
+    exit
+end
+if ARGV.length != pattern.count("+") + 2
+    puts "pattern indicates #{pattern.count("+")} input files but #{ARGV.length-2} input files are given"
+    exit
+end
+
+outfile = ARGV[-1]
+ext = File.extname(outfile)
+infiles = ARGV[1..-2]
+rows = pattern.split('/').map { |r| infiles.shift(r.length) }
+
+Dir.mktmpdir do |tmpdir|
+    tmpfiles = []
+    rows.each_with_index do |files,i|
+        tmpfile = File.join(tmpdir, "#{i}#{ext}")
+        tmpfiles << tmpfile
+        `convert +append #{files.map{|f| '"'+f+'"'}.join(" ")} #{tmpfile}`
+    end
+    `convert -append #{tmpfiles.join(" ")} #{outfile}`
+end
